@@ -5,9 +5,9 @@
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
     <link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Roboto:100,200,300,400,500,600,700'>
-    <link rel='stylesheet' type='text/css' href='bower_components/semantic-ui/build/packaged/css/semantic.min.css'>
-    <link rel='stylesheet' type='text/css' href='bower_components/leaflet/dist/leaflet.css'>
-    <link rel='stylesheet' type='text/css' href='css/findme.css'>
+    <link rel='stylesheet' type='text/css' href="@routes.Assets.at("bower_components/semantic-ui/build/packaged/css/semantic.min.css")">
+    <link rel='stylesheet' type='text/css' href="@routes.Assets.at("bower_components/leaflet/dist/leaflet.css")">
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/findme.css")">
   </head>
   <body>
     <div class='ui inverted menu'>
@@ -23,10 +23,9 @@
     </div>
     <div id='map'></div>
   
-    <script src='bower_components/jquery/dist/jquery.min.js'></script>
-    <script src='bower_components/semantic-ui/build/packaged/javascript/semantic.min.js'></script>
-    <script src='bower_components/leaflet/dist/leaflet-src.js'></script>
-    <script src='primus/primus.js'></script>
-    <script src='js/findme-client.js'></script>
+    <script src="@routes.Assets.at("bower_components/jquery/dist/jquery.min.js")"></script>
+    <script src="@routes.Assets.at("bower_components/semantic-ui/build/packaged/javascript/semantic.min.js")"></script>
+    <script src="@routes.Assets.at("bower_components/leaflet/dist/leaflet-src.js")"></script>
+    <script src="@routes.Assets.at("javascripts/findme-client.js")"></script>
   </body>
 </html>
