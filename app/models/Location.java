@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.libs.Json;
 import play.mvc.WebSocket;
 
+import static models.Locations.dataToJson;
+
 /**
  * Created by daniel on 9/16/14.
  */
@@ -28,13 +30,10 @@ public class Location {
     }
 
     public ObjectNode getLatLng() {
-        ObjectNode response = Json.newObject();
-        response.put("id", uuid);
-        ArrayNode latlng = response.putArray("latlng");
-        latlng.add(this.lat);
-        latlng.add(this.lng);
-        response.put("accuracy", this.accuracy);
+        return dataToJson(this.uuid, this.lat, this.lng, this.accuracy);
+    }
 
-        return response;
+    public void write(JsonNode json) {
+        this.out.write(json);
     }
 }

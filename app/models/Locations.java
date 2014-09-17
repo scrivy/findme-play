@@ -36,28 +36,33 @@ public class Locations {
                     double lng = latLng.get(1).asDouble();
                     int accuracy = data.get("accuracy").asInt();
 
+                    updateLocation(uuid, dataToJson(uuid, lat, lng, accuracy));
+
                     Location location;
                     synchronized (Locations.class) {
                         location = sockets.get(uuid);
                     }
                     location.update(lat, lng, accuracy);
-
-                    sendAllLocations(uuid);
                 }
             }
         });
 
         in.onClose(new Callback0() {
             public void invoke() {
+                synchronized (Locations.class) {
+                    sockets.remove(uuid);
+                }
+
                 System.out.println(uuid + ": Disconnected");
             }
         });
 
-        System.out.println(uuid + ": Connected");
+        sendAllLocations(uuid);
 
-        ObjectNode hello = Json.newObject();
-        hello.put("action", "hello");
-        out.write(hello);
+        System.out.println(uuid + ": Connected");
+        synchronized (Location.class) {
+            System.out.println("Map size = " + sockets.size());
+        }
     }
 
     private static void sendAllLocations(String uuid) {
@@ -80,8 +85,52 @@ public class Locations {
             }
         }
 
-        System.out.println(locationsJson);
+        ObjectNode response = mapper.createObjectNode();
+        response.put("action", "allLocations");
+        ObjectNode data = response.putObject("data");
+        ObjectNode locations = data.putObject("locations");
+        locations.putAll(locationsJson);
 
+        Location recipient;
+        synchronized (Locations.class) {
+            recipient = sockets.get(uuid);
+        }
+
+        recipient.write(response);
+    }
+
+    private static void updateLocation(String uuid, ObjectNode dataJson) {
+        // build json to send
+        ObjectNode json = mapper.createObjectNode();
+        json.put("action", "updateLocation");
+        ObjectNode data = json.putObject("data");
+        data.putAll(dataJson);
+
+        Set<String> keys;
+        synchronized (Location.class) {
+            keys = sockets.keySet();
+        }
+
+        for (String key : keys) {
+            if (!key.equals(uuid)) {
+                Location location;
+                synchronized (Location.class) {
+                    location = sockets.get(key);
+                }
+                location.write(json);
+            }
+        }
+    }
+
+    public static ObjectNode dataToJson(String uuid, double lat, double lng, int accuracy) {
+        ObjectNode data = Json.newObject();
+        data.put("id", uuid);
+        ArrayNode latlng = data.putArray("latlng");
+        latlng.add(lat);
+        latlng.add(lng);
+        data.put("accuracy", accuracy);
+
+        return data;
     }
 }
 

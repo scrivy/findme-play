@@ -6,8 +6,8 @@ var map = L.map('map').setView([38.55, -121.74], 13);
 //}).addTo(map);
 
 //L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-//L.tileLayer('http://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png').addTo(map);
-L.tileLayer('/tiles/{z}/{x}/{y}.png').addTo(map);
+L.tileLayer('http://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png').addTo(map);
+//L.tileLayer('/tiles/{z}/{x}/{y}.png').addTo(map);
 
 map.locate({setView: true, maxZoom: 18});
 
@@ -54,7 +54,7 @@ ws.onmessage = function(event) {
   switch(message.action) {
     case 'allLocations':
       var locations = message.data.locations;
-      delete locations[this.socket.id];
+//      delete locations[this.socket.id];
 
       var ids = Object.keys(locations);
 
@@ -81,22 +81,20 @@ ws.onmessage = function(event) {
       break;
     case 'updateLocation':
       var location = message.data;
-      if (location.id !== this.socket.id) {
-        if (everyone[location.id]) {
-          everyone[location.id].marker
-            .setLatLng(location.latlng)
-            .setOpacity(1)
-          everyone[location.id].circle
-            .setLatLng(location.latlng)
-            .setRadius(location.accuracy)
-            .setStyle({opacity: 0.5})
-          ;
-        } else {
-          everyone[location.id] = {
-            marker: L.marker(location.latlng).addTo(map),
-            circle: L.circle(location.latlng, location.accuracy).addTo(map)
-          };
-        }
+      if (everyone[location.id]) {
+        everyone[location.id].marker
+          .setLatLng(location.latlng)
+          .setOpacity(1)
+        everyone[location.id].circle
+          .setLatLng(location.latlng)
+          .setRadius(location.accuracy)
+          .setStyle({opacity: 0.5})
+        ;
+      } else {
+        everyone[location.id] = {
+          marker: L.marker(location.latlng).addTo(map),
+          circle: L.circle(location.latlng, location.accuracy).addTo(map)
+        };
       }
 
       break;
