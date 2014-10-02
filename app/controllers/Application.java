@@ -45,6 +45,9 @@ public class Application extends Controller {
             while ((bytesRead = fis.read(buffer)) != -1) {
                 fos.write(buffer, 0, bytesRead);
             }
+            fos.close();
+            fis.close();
+            System.out.println("downloaded tile " + y);
         }
 
         InputStream is = new FileInputStream(tileFile);
