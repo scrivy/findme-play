@@ -8,19 +8,16 @@ import play.libs.F.*;
 import play.libs.Json;
 import play.mvc.WebSocket;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Locations {
-    private static final Map<String, Location> sockets = new HashMap<>();
+    private static final Map<String, Location> sockets = new ConcurrentHashMap<>();
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void addWebSocket(final String uuid, WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out) {
 
-        synchronized (Locations.class) {
-            sockets.put(uuid, new Location(uuid, out));
-        }
+        sockets.put(uuid, new Location(uuid, out));
 
         in.onMessage(new Callback<JsonNode>() {
             public void invoke(JsonNode event) {
@@ -37,21 +34,14 @@ public class Locations {
                     int accuracy = data.get("accuracy").asInt();
 
                     updateLocation(uuid, dataToJson(uuid, lat, lng, accuracy));
-
-                    Location location;
-                    synchronized (Locations.class) {
-                        location = sockets.get(uuid);
-                    }
-                    location.update(lat, lng, accuracy);
+                    sockets.get(uuid).update(lat, lng, accuracy);
                 }
             }
         });
 
         in.onClose(new Callback0() {
             public void invoke() {
-                synchronized (Locations.class) {
-                    sockets.remove(uuid);
-                }
+                sockets.remove(uuid);
 
                 System.out.println(uuid + ": Disconnected");
             }
@@ -60,28 +50,16 @@ public class Locations {
         sendAllLocations(uuid);
 
         System.out.println(uuid + ": Connected");
-        synchronized (Location.class) {
-            System.out.println("Map size = " + sockets.size());
-        }
+        System.out.println("Map size = " + sockets.size());
     }
 
     private static void sendAllLocations(String uuid) {
-        Set<String> keys;
-        synchronized (Locations.class) {
-            keys = sockets.keySet();
-        }
-
         ObjectNode locationsJson = mapper.createObjectNode();
 
-        for (String key : keys) {
+        for (String key : sockets.keySet()) {
             if (!key.equals(uuid)) {
                 ObjectNode locationJson = locationsJson.putObject(key);
-
-                Location location;
-                synchronized (Locations.class) {
-                    location = sockets.get(key);
-                }
-                locationJson.putAll(location.getLatLng());
+                locationJson.putAll(sockets.get(key).getLatLng());
             }
         }
 
@@ -91,12 +69,7 @@ public class Locations {
         ObjectNode locations = data.putObject("locations");
         locations.putAll(locationsJson);
 
-        Location recipient;
-        synchronized (Locations.class) {
-            recipient = sockets.get(uuid);
-        }
-
-        recipient.write(response);
+        sockets.get(uuid).write(response);
     }
 
     private static void updateLocation(String uuid, ObjectNode dataJson) {
@@ -106,18 +79,9 @@ public class Locations {
         ObjectNode data = json.putObject("data");
         data.putAll(dataJson);
 
-        Set<String> keys;
-        synchronized (Location.class) {
-            keys = sockets.keySet();
-        }
-
-        for (String key : keys) {
+        for (String key : sockets.keySet()) {
             if (!key.equals(uuid)) {
-                Location location;
-                synchronized (Location.class) {
-                    location = sockets.get(key);
-                }
-                location.write(json);
+                sockets.get(key).write(json);
             }
         }
     }

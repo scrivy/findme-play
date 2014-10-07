@@ -2,15 +2,11 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import models.Locations;
-import play.*;
 import play.mvc.*;
 
 import views.html.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -30,15 +26,24 @@ public class Application extends Controller {
         };
     }
 
-    public static Result getTile(String z, String x, String y) throws Exception {
+    public static Result getTile(String z, String x, String y) throws IOException {
         String tilePath = z + "/" + x + "/" + y;
         File tileFile = new File("public/tiles/" + tilePath);
 
         if (!tileFile.exists()) {
             new File("public/tiles/" + z + "/" + x).mkdirs();
-            URL tile = new URL("http://78.47.233.251/outdoors/" + tilePath);
+
+            URL tile = null;
+            try {
+                tile = new URL("http://78.47.233.251/outdoors/" + tilePath);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return internalServerError();
+            }
+
             URLConnection yc = tile.openConnection();
             InputStream fis = yc.getInputStream();
+
             FileOutputStream fos = new FileOutputStream("public/tiles/" + tilePath);
             int bytesRead = -1;
             byte[] buffer = new byte[4096];
